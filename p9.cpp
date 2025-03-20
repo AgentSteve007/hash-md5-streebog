@@ -1,67 +1,76 @@
 #include <iostream>
-#include <fstream>
-#include <iomanip>
-#include <chrono>
-#include <openssl/md5.h> // Для работы с MD5
-#include <vector>
-#include <sstream>
+#include <stack>
+#include <cctype> 
 
-// Примерная реализация хеширования Стрибог через стороннюю библиотеку
-// Для этого примера предполагаем, что у нас есть библиотека для Стрибог
-// Можно использовать, например, библиотеку "streebog" или аналогичную
+using namespace std;
 
-// Функция для вычисления MD5
-std::string computeMD5(const std::string& data) {
-    unsigned char digest[MD5_DIGEST_LENGTH];
-    MD5_CTX mdContext;
-    MD5_Init(&mdContext);
-    MD5_Update(&mdContext, data.c_str(), data.length());
-    MD5_Final(digest, &mdContext);
-
-    std::stringstream ss;
-    for (int i = 0; i < MD5_DIGEST_LENGTH; ++i) {
-        ss << std::setfill('0') << std::setw(2) << std::hex << (int)digest[i];
+// Р¤СѓРЅРєС†РёСЏ РґР»СЏ РІС‹РїРѕР»РЅРµРЅРёСЏ Р°СЂРёС„РјРµС‚РёС‡РµСЃРєРѕР№ РѕРїРµСЂР°С†РёРё
+int performOperation(int operand1, int operand2, char operation) {
+    if (operation == '+') {
+        return operand1 + operand2;
     }
-    return ss.str();
+    else if (operation == '-') {
+        return operand1 - operand2;
+    }
+    return 0; // Р—Р°С‰РёС‚Р° РЅР° СЃР»СѓС‡Р°Р№ РЅРµРІРµСЂРЅРѕР№ РѕРїРµСЂР°С†РёРё
 }
 
-// Функция для вычисления Стрибог (псевдореализация, подставьте свою)
-std::string computeStreebog(const std::string& data) {
-    // Реализация Стрибог (могут быть использованы сторонние библиотеки)
-    // Примерная заглушка, замените на реальную библиотеку Стрибог
-    return "stub_streebog_hash_for_example";
-}
+// Р¤СѓРЅРєС†РёСЏ РґР»СЏ РІС‹С‡РёСЃР»РµРЅРёСЏ РІС‹СЂР°Р¶РµРЅРёСЏ
+int evaluateExpression(const string& expression) {
+    stack<int> operands;    // РЎС‚РµРє РѕРїРµСЂР°РЅРґРѕРІ (С‡РёСЃРµР»)
+    stack<char> operators;  // РЎС‚РµРє РѕРїРµСЂР°С‚РѕСЂРѕРІ (+ РёР»Рё -)
 
-int main9() {
-    // Чтение данных из файла
-    std::ifstream file("large.txt", std::ios::binary);
-    if (!file) {
-        std::cerr << "Error opening file" << std::endl;
-        return 1;
+    int i = 0;
+
+    // РџСЂРѕРІРµСЂРєР° РЅР° СЃР»СѓС‡Р°Р№, РµСЃР»Рё РїРµСЂРІС‹Р№ СЌР»РµРјРµРЅС‚ вЂ” СЌС‚Рѕ Р·РЅР°Рє РјРёРЅСѓСЃР°
+    if (expression[0] == '-') {
+        // Р•СЃР»Рё РІС‹СЂР°Р¶РµРЅРёРµ РЅР°С‡РёРЅР°РµС‚СЃСЏ СЃ '-', СЃС‡РёС‚Р°РµРј РїРµСЂРІРѕРµ С‡РёСЃР»Рѕ РѕС‚СЂРёС†Р°С‚РµР»СЊРЅС‹Рј
+        i++;  // РџРµСЂРµС…РѕРґРёРј Рє СЃР»РµРґСѓСЋС‰РµРјСѓ СЃРёРјРІРѕР»Сѓ
+        operands.push(-(expression[i] - '0'));  // Р—Р°РїРѕРјРёРЅР°РµРј РѕС‚СЂРёС†Р°С‚РµР»СЊРЅС‹Р№ РїРµСЂРІС‹Р№ РѕРїРµСЂР°РЅРґ
+        i++;  // РџРµСЂРµС…РѕРґРёРј РґР°Р»СЊС€Рµ
     }
 
-    // Чтение всего содержимого файла в строку
-    std::ostringstream ss;
-    ss << file.rdbuf();
-    std::string fileContent = ss.str();
+    // РћСЃРЅРѕРІРЅРѕР№ С†РёРєР» РґР»СЏ РѕР±СЂР°Р±РѕС‚РєРё РІС‹СЂР°Р¶РµРЅРёСЏ
+    for (; i < expression.length(); ++i) {
+        char ch = expression[i];
 
-    // Измерение времени для MD5
-    auto start = std::chrono::high_resolution_clock::now();
-    std::string md5Hash = computeMD5(fileContent);
-    auto end = std::chrono::high_resolution_clock::now();
-    auto md5Duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+        // Р•СЃР»Рё СЃРёРјРІРѕР» - С†РёС„СЂР°, РєР»Р°РґРµРј РµРіРѕ РІ СЃС‚РµРє РѕРїРµСЂР°РЅРґРѕРІ
+        if (isdigit(ch)) {
+            operands.push(ch - '0');
+        }
+        // Р•СЃР»Рё СЃРёРјРІРѕР» - РѕРїРµСЂР°С‚РѕСЂ (+ РёР»Рё -), РєР»Р°РґРµРј РµРіРѕ РІ СЃС‚РµРє РѕРїРµСЂР°С‚РѕСЂРѕРІ
+        else if (ch == '+' || ch == '-') {
+            operators.push(ch);
+        }
+        // Р•СЃР»Рё СЃРёРјРІРѕР» '=', РІС‹РїРѕР»РЅСЏРµРј РІСЃРµ РѕСЃС‚Р°РІС€РёРµСЃСЏ РѕРїРµСЂР°С†РёРё
+        else if (ch == '=') {
+            while (!operators.empty()) {
+                int operand2 = operands.top(); operands.pop();
+                int operand1 = operands.top(); operands.pop();
+                char op = operators.top(); operators.pop();
 
-    // Измерение времени для Стрибог
-    start = std::chrono::high_resolution_clock::now();
-    std::string streebogHash = computeStreebog(fileContent);
-    end = std::chrono::high_resolution_clock::now();
-    auto streebogDuration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+                // Р’С‹РїРѕР»РЅСЏРµРј РѕРїРµСЂР°С†РёСЋ Рё РєР»Р°РґРµРј СЂРµР·СѓР»СЊС‚Р°С‚ РѕР±СЂР°С‚РЅРѕ РІ СЃС‚РµРє РѕРїРµСЂР°РЅРґРѕРІ
+                int result = performOperation(operand1, operand2, op);
+                operands.push(result);
+            }
+        }
+    }
 
-    // Вывод результатов
-    std::cout << "MD5 hash: " << md5Hash << std::endl;
-    std::cout << "MD5 time: " << md5Duration << " ms" << std::endl;
-    std::cout << "Streebog hash: " << streebogHash << std::endl;
-    std::cout << "Streebog time: " << streebogDuration << " ms" << std::endl;
+    // Р РµР·СѓР»СЊС‚Р°С‚ Р±СѓРґРµС‚ РІ РІРµСЂС€РёРЅРµ СЃС‚РµРєР° РѕРїРµСЂР°РЅРґРѕРІ
+    return operands.top();
+}
+
+int main4() {
+    setlocale(LC_ALL, "Russian");
+
+    string expression;
+
+    cout << "Р’РІРµРґРёС‚Рµ РІС‹СЂР°Р¶РµРЅРёРµ: ";
+    cin >> expression;
+
+    int result = evaluateExpression(expression);
+
+    cout << "Р РµР·СѓР»СЊС‚Р°С‚: " << result << endl;
 
     return 0;
 }
